@@ -16,6 +16,7 @@
 #include "console.h"
 #include "global.h"
 #include "proto.h"
+extern long startup_time;
 
 
 /*======================================================================*
@@ -24,7 +25,6 @@
 PUBLIC void cstart()
 {
 	disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n-----\"cstart\" begins-----\n");
-
 	/* 将 LOADER 中的 GDT 复制到新的 GDT 中 */
 	memcpy(	&gdt,				   /* New GDT */
 		(void*)(*((u32*)(&gdt_ptr[2]))),   /* Base  of Old GDT */

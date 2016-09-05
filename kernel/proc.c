@@ -23,6 +23,8 @@ PRIVATE int  msg_send(struct proc* current, int dest, MESSAGE* m);
 PRIVATE int  msg_receive(struct proc* current, int src, MESSAGE* m);
 PRIVATE int  deadlock(int src, int dest);
 
+long startup_time=0;
+
 /*****************************************************************************
  *                                schedule
  *****************************************************************************/

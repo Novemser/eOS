@@ -101,6 +101,42 @@ PUBLIC int get_kernel_map(unsigned int * b, unsigned int * l)
 	return 0;
 }
 
+PUBLIC char * MyItoa(int num, char *str, int radix)
+{
+	char  string[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	char* ptr = str;
+	int denom = 0;  //余数
+	int count = -1;
+	int i;
+	int j;
+
+	while (num >= radix)
+	{
+	denom   = num % radix;
+	num/= radix;
+
+	*ptr++  = string[denom];
+	count++;
+	}
+
+	if (num)
+	{
+	*ptr++ = string[num];
+	count++;
+	}
+
+	*ptr = '\0';
+	j= count;
+
+for (i = 0; i < (count + 1) / 2; i++){
+int temp=str[i];
+	str[i]=str[j];
+	str[j--] = temp;
+	}
+	return str;
+}
+
 /*======================================================================*
                                itoa
  *======================================================================*/
@@ -143,7 +179,8 @@ PUBLIC char * itoa(char * str, int num)/* 数字前面的 0 不被显示出来, 
 PUBLIC void disp_int(int input)
 {
 	char output[16];
-	itoa(output, input);
+	// itoa(output, input);
+	MyItoa(input, output, 10);
 	disp_str(output);
 }
 
