@@ -182,29 +182,6 @@ LABEL_FILE_LOADED:
 
 	call	KillMotor		; 关闭软驱马达
 
-;;; 	;; 取硬盘信息
-;;; 	xor	eax, eax
-;;; 	mov	ah, 08h		; Code for drive parameters
-;;; 	mov	dx, 80h		; hard drive
-;;; 	int	0x13
-;;; 	jb	.hderr		; No such drive?
-;;; 	;; cylinder number
-;;; 	xor	ax, ax		; ax <- 0
-;;; 	mov	ah, cl		; ax <- cl
-;;; 	shr	ah, 6
-;;; 	and	ah, 3	   	; cl bits 7-6: high two bits of maximum cylinder number
-;;; 	mov	al, ch		; CH = low eight bits of maximum cylinder number
-;;; 	;; sector number
-;;; 	and	cl, 3Fh		; cl bits 5-0: max sector number (1-origin)
-;;; 	;; head number
-;;; 	inc	dh		; dh = 1 + max head number (0-origin)
-;;; 	mov	[_dwNrHead], dh
-;;; 	mov	[_dwNrSector], cl
-;;; 	mov	[_dwNrCylinder], ax
-;;; 	jmp	.hdok
-;;; .hderr:
-;;; 	mov	dword [_dwNrHead], 0FFFFh
-;;; .hdok:
 	;; 将硬盘引导扇区内容读入内存 0500h 处
 	xor     ax, ax
 	mov     es, ax
@@ -688,9 +665,9 @@ DispMemInfo:
 	push	edi
 	push	ecx
 
-	push	szMemChkTitle
-	call	DispStr
-	add	esp, 4
+;	push	szMemChkTitle
+;	call	DispStr
+;	add	esp, 4
 
 	mov	esi, MemChkBuf
 	mov	ecx, [dwMCRNumber]	;for(int i=0;i<[MCRNumber];i++) // 每次得到一个ARDS(Address Range Descriptor Structure)结构
@@ -699,14 +676,14 @@ DispMemInfo:
 	mov	edi, ARDStruct		;	{			// 依次显示：BaseAddrLow，BaseAddrHigh，LengthLow，LengthHigh，Type
 .1:					;
 	push	dword [esi]		;
-	call	DispInt			;		DispInt(MemChkBuf[j*4]); // 显示一个成员
+	;call	DispInt			;		DispInt(MemChkBuf[j*4]); // 显示一个成员
 	pop	eax			;
 	stosd				;		ARDStruct[j*4] = MemChkBuf[j*4];
 	add	esi, 4			;
 	dec	edx			;
 	cmp	edx, 0			;
 	jnz	.1			;	}
-	call	DispReturn		;	printf("\n");
+	;call	DispReturn		;	printf("\n");
 	cmp	dword [dwType], 1	;	if(Type == AddressRangeMemory) // AddressRangeMemory : 1, AddressRangeReserved : 2
 	jne	.2			;	{
 	mov	eax, [dwBaseAddrLow]	;
@@ -717,67 +694,19 @@ DispMemInfo:
 .2:					;	}
 	loop	.loop			;}
 					;
-	call	DispReturn		;printf("\n");
+	;call	DispReturn		;printf("\n");
 	push	szRAMSize		;
-	call	DispStr			;printf("RAM size:");
+	;call	DispStr			;printf("RAM size:");
 	add	esp, 4			;
 					;
 	push	dword [dwMemSize]	;
-	call	DispInt			;DispInt(MemSize);
+	;call	DispInt			;DispInt(MemSize);
 	add	esp, 4			;
 
 	pop	ecx
 	pop	edi
 	pop	esi
 	ret
-; ---------------------------------------------------------------------------
-
-	
-;;; ; 显示内存信息 --------------------------------------------------------------
-;;; DispHDInfo:
-;;; 	push	eax
-
-;;; 	cmp	dword [dwNrHead], 0FFFFh
-;;; 	je	.nohd
-
-;;; 	push	szCylinder
-;;; 	call	DispStr			; printf("C:");
-;;; 	add	esp, 4
-
-;;; 	push	dword [dwNrCylinder] 	; NR Cylinder
-;;; 	call	DispInt
-;;; 	pop	eax
-
-;;; 	push	szHead
-;;; 	call	DispStr			; printf(" H:");
-;;; 	add	esp, 4
-
-;;; 	push	dword [dwNrHead] 	; NR Head
-;;; 	call	DispInt
-;;; 	pop	eax
-
-;;; 	push	szSector
-;;; 	call	DispStr			; printf(" S:");
-;;; 	add	esp, 4
-
-;;; 	push	dword [dwNrSector] 	; NR Sector
-;;; 	call	DispInt
-;;; 	pop	eax
-	
-;;; 	jmp	.hdinfo_finish
-	
-;;; .nohd:
-;;; 	push	szNOHD
-;;; 	call	DispStr			; printf("No hard drive. System halt.");
-;;; 	add	esp, 4
-;;; 	jmp	$			; 没有硬盘，死在这里
-	
-;;; .hdinfo_finish:
-;;; 	call	DispReturn
-
-;;; 	pop	eax
-;;; 	ret
-;;; ; ---------------------------------------------------------------------------
 
 	
 ; 启动分页机制 --------------------------------------------------------------

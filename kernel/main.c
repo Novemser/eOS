@@ -16,8 +16,40 @@
 #include "console.h"
 #include "global.h"
 #include "proto.h"
+#include "io.h"
+#include "system.h"
+#include "time.h"
 
+extern long startup_time;
+extern long kernel_mktime(struct tm * tm);
 
+#define CMOS_READ(addr) ({ \
+outb_p(0x80|addr,0x70); \
+inb_p(0x71); \
+})
+
+#define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
+
+static void time_init(void)
+{
+	struct tm time;
+
+	do {
+		time.tm_sec = CMOS_READ(0);
+		time.tm_min = CMOS_READ(2);
+		time.tm_hour = CMOS_READ(4);
+		time.tm_mday = CMOS_READ(7);
+		time.tm_mon = CMOS_READ(8)-1;
+		time.tm_year = CMOS_READ(9);
+	} while (time.tm_sec != CMOS_READ(0));
+	BCD_TO_BIN(time.tm_sec);
+	BCD_TO_BIN(time.tm_min);
+	BCD_TO_BIN(time.tm_hour);
+	BCD_TO_BIN(time.tm_mday);
+	BCD_TO_BIN(time.tm_mon);
+	BCD_TO_BIN(time.tm_year);
+	startup_time = kernel_mktime(&time);
+}
 /*****************************************************************************
  *                               kernel_main
  *****************************************************************************/
@@ -45,20 +77,24 @@ PUBLIC int kernel_main()
 			continue;
 		}
 
-	        if (i < NR_TASKS) {     /* TASK */
-                        t	= task_table + i;
-                        priv	= PRIVILEGE_TASK;
-                        rpl     = RPL_TASK;
-                        eflags  = 0x1202;/* IF=1, IOPL=1, bit 2 is always 1 */
+        if (i < NR_TASKS) 
+        {     
+        	/* TASK */
+            t	= task_table + i;
+            priv	= PRIVILEGE_TASK;
+            rpl     = RPL_TASK;
+            eflags  = 0x1202;/* IF=1, IOPL=1, bit 2 is always 1 */
 			prio    = 15;
-                }
-                else {                  /* USER PROC */
-                        t	= user_proc_table + (i - NR_TASKS);
-                        priv	= PRIVILEGE_USER;
-                        rpl     = RPL_USER;
-                        eflags  = 0x202;	/* IF=1, bit 2 is always 1 */
+        }
+        else 
+        {                  
+        	/* USER PROC */
+            t	= user_proc_table + (i - NR_TASKS);
+            priv	= PRIVILEGE_USER;
+            rpl     = RPL_USER;
+            eflags  = 0x202;	/* IF=1, bit 2 is always 1 */
 			prio    = 5;
-                }
+        }
 
 		strcpy(p->name, t->name);	/* name of the process */
 		p->p_parent = NO_TASK;
@@ -71,7 +107,9 @@ PUBLIC int kernel_main()
 			p->ldts[INDEX_LDT_C].attr1  = DA_C   | priv << 5;
 			p->ldts[INDEX_LDT_RW].attr1 = DA_DRW | priv << 5;
 		}
-		else {		/* INIT process */
+		else 
+		{		
+			/* INIT process */
 			unsigned int k_base;
 			unsigned int k_limit;
 			int ret = get_kernel_map(&k_base, &k_limit);
@@ -125,7 +163,7 @@ PUBLIC int kernel_main()
 	p_proc_ready	= proc_table;
 
 	init_clock();
-        init_keyboard();
+    init_keyboard();
 
 	restart();
 
@@ -382,4 +420,3 @@ PUBLIC void panic(const char *fmt, ...)
 	/* should never arrive here */
 	__asm__ __volatile__("ud2");
 }
-

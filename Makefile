@@ -16,8 +16,8 @@ DASM		= objdump
 CC		= gcc
 LD		= ld
 ASMBFLAGS	= -I boot/include/
-ASMKFLAGS	= -I include/ -I include/sys/ -f elf
-CFLAGS		= -I include/ -I include/sys/ -c -fno-builtin -Wall -fno-stack-protector
+ASMKFLAGS	= -I include/ -I include/sys/ -I include/asm/ -f elf
+CFLAGS		= -I include/ -I include/sys/ -I include/asm/ -c -fno-builtin -Wall -fno-stack-protector
 #CFLAGS		= -I include/ -c -fno-builtin -fno-stack-protector -fpack-struct -Wall
 LDFLAGS		= -Ttext $(ENTRYPOINT) -Map krnl.map
 DASMFLAGS	= -D
@@ -33,6 +33,7 @@ OBJS		= kernel/kernel.o kernel/start.o kernel/main.o\
 			kernel/i8259.o kernel/global.o kernel/protect.o kernel/proc.o\
 			kernel/systask.o kernel/hd.o\
 			kernel/kliba.o kernel/klib.o\
+			kernel/mktime.o\
 			lib/syslog.o\
 			mm/main.o mm/forkexit.o mm/exec.o\
 			fs/main.o fs/open.o fs/misc.o fs/read_write.o\
@@ -137,6 +138,9 @@ kernel/hd.o: kernel/hd.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/klib.o: kernel/klib.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/mktime.o: kernel/mktime.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/misc.o: lib/misc.c
