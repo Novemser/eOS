@@ -36,7 +36,8 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define SEEK_END	3
 
 #define	MAX_PATH	128
-
+        	
+#define NULL ((void *)0)
 /**
  * @struct stat
  * @brief  File status, returned by syscall stat();

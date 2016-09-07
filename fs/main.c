@@ -71,6 +71,9 @@ PUBLIC void task_fs()
 		case EXIT:
 			fs_msg.RETVAL = fs_exit();
 			break;
+		case LS:
+            fs_msg.RETVAL = do_ls();
+            break;
 		/* case LSEEK: */
 		/* 	fs_msg.OFFSET = do_lseek(); */
 		/* 	break; */
@@ -96,23 +99,24 @@ PUBLIC void task_fs()
 		/* msg_name[STAT]   = "STAT"; */
 
 		switch (msgtype) {
-		case UNLINK:
-			dump_fd_graph("%s just finished. (pid:%d)",
-				      msg_name[msgtype], src);
-			//panic("");
-		case OPEN:
-		case CLOSE:
-		case READ:
-		case WRITE:
-		case FORK:
-		case EXIT:
-		/* case LSEEK: */
-		case STAT:
-			break;
-		case RESUME_PROC:
-			break;
-		default:
-			assert(0);
+			case UNLINK:
+				// dump_fd_graph("%s just finished. (pid:%d)",
+				// 	      msg_name[msgtype], src);
+				//panic("");
+			case LS:
+			case OPEN:
+			case CLOSE:
+			case READ:
+			case WRITE:
+			case FORK:
+			case EXIT:
+			/* case LSEEK: */
+			case STAT:
+				break;
+			case RESUME_PROC:
+				break;
+			default:
+				assert(0);
 		}
 #endif
 
@@ -155,8 +159,15 @@ PRIVATE void init_fs()
 	assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
 	send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
 
-	/* make FS */
 	mkfs();
+	// /* read the super block of ROOT DEVICE */
+	// RD_SECT(ROOT_DEV, 1);
+
+	// sb = (struct super_block *)fsbuf;
+	// if (sb->magic != MAGIC_V1) {
+	// 	printl("{FS} mkfs\n");
+	// 	mkfs(); /* make FS */
+	// }
 
 	/* load super block of ROOT */
 	read_super_block(ROOT_DEV);
@@ -198,7 +209,7 @@ PRIVATE void mkfs()
 	assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
 	send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
 
-	printl("{FS} dev size: 0x%x sectors\n", geo.size);
+	//printl("{FS} dev size: 0x%x sectors\n", geo.size);
 
 	int bits_per_sect = SECTOR_SIZE * 8; /* 8 bits per byte */
 	/* generate a super block */
@@ -227,14 +238,14 @@ PRIVATE void mkfs()
 	/* write the super block */
 	WR_SECT(ROOT_DEV, 1);
 
-	printl("{FS} devbase:0x%x00, sb:0x%x00, imap:0x%x00, smap:0x%x00\n"
-	       "        inodes:0x%x00, 1st_sector:0x%x00\n", 
-	       geo.base * 2,
-	       (geo.base + 1) * 2,
-	       (geo.base + 1 + 1) * 2,
-	       (geo.base + 1 + 1 + sb.nr_imap_sects) * 2,
-	       (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects) * 2,
-	       (geo.base + sb.n_1st_sect) * 2);
+	// printl("{FS} devbase:0x%x00, sb:0x%x00, imap:0x%x00, smap:0x%x00\n"
+	//        "        inodes:0x%x00, 1st_sector:0x%x00\n", 
+	//        geo.base * 2,
+	//        (geo.base + 1) * 2,
+	//        (geo.base + 1 + 1) * 2,
+	//        (geo.base + 1 + 1 + sb.nr_imap_sects) * 2,
+	//        (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects) * 2,
+	//        (geo.base + sb.n_1st_sect) * 2);
 
 	/************************/
 	/*       inode map      */

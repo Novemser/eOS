@@ -37,7 +37,7 @@ OBJS		= kernel/kernel.o kernel/start.o kernel/main.o\
 			lib/syslog.o\
 			mm/main.o mm/forkexit.o mm/exec.o\
 			fs/main.o fs/open.o fs/misc.o fs/read_write.o\
-			fs/link.o\
+			fs/link.o fs/ls.o\
 			fs/disklog.o
 LOBJS		=  lib/syscall.o\
 			lib/printf.o lib/vsprintf.o\
@@ -201,6 +201,9 @@ fs/main.o: fs/main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/open.o: fs/open.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fs/ls.o: fs/ls.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/read_write.o: fs/read_write.c

@@ -23,11 +23,11 @@
 /* #define __TTY_DEBUG__ */
 
 /* local routines */
-PRIVATE void	set_cursor(unsigned int position);
-PRIVATE void	set_video_start_addr(u32 addr);
-PRIVATE void	flush(CONSOLE* con);
+PUBLIC void	set_cursor(unsigned int position);
+PUBLIC void	set_video_start_addr(u32 addr);
+PUBLIC void	flush(CONSOLE* con);
 PRIVATE	void	w_copy(unsigned int dst, const unsigned int src, int size);
-PRIVATE void	clear_screen(int pos, int len);
+PUBLIC void	clear_screen(int pos, int len);
 
 /*****************************************************************************
  *                                init_screen
@@ -146,7 +146,7 @@ PUBLIC void out_char(CONSOLE* con, char ch)
  * @param pos  Write from here.
  * @param len  How many whitespaces will be written.
  *****************************************************************************/
-PRIVATE void clear_screen(int pos, int len)
+PUBLIC void clear_screen(int pos, int len)
 {
 	u8 * pch = (u8*)(V_MEM_BASE + pos * 2);
 	while (--len >= 0) {
@@ -181,7 +181,7 @@ PUBLIC int is_current_console(CONSOLE* con)
  * @param position  Position of the cursor based on the beginning of the video
  *                  memory. Note that it counts in WORDs, not in BYTEs.
  *****************************************************************************/
-PRIVATE void set_cursor(unsigned int position)
+PUBLIC void set_cursor(unsigned int position)
 {
 	disable_int();
 	out_byte(CRTC_ADDR_REG, CURSOR_H);
@@ -200,7 +200,7 @@ PRIVATE void set_cursor(unsigned int position)
  * 
  * @param addr  Offset in the video memory.
  *****************************************************************************/
-PRIVATE void set_video_start_addr(u32 addr)
+PUBLIC void set_video_start_addr(u32 addr)
 {
 	disable_int();
 	out_byte(CRTC_ADDR_REG, START_ADDR_H);
@@ -305,7 +305,7 @@ PUBLIC void scroll_screen(CONSOLE* con, int dir)
  * 
  * @param con  The console to be set.
  *****************************************************************************/
-PRIVATE void flush(CONSOLE* con)
+PUBLIC void flush(CONSOLE* con)
 {
 	if (is_current_console(con)) {
 		set_cursor(con->cursor);

@@ -19,14 +19,16 @@
 #include "io.h"
 #include "system.h"
 #include "time.h"
+#include "stdarg.h"
 
-                                                    extern long startup_time;
-                                                    extern long kernel_mktime(struct tm * tm);
+extern long startup_time;
+extern long kernel_mktime(struct tm * tm);
 
+// Getting time from CMOS
 #define CMOS_READ(addr) ({ \
-                                                    outb_p(0x80|addr,0x70); \
-                                                    inb_p(0x71); \
-                                                })
+    outb_p(0x80|addr,0x70); \
+    inb_p(0x71); \
+})
 
 #define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
 
@@ -59,8 +61,7 @@ static void init_time(void)
  *****************************************************************************/
  PUBLIC int kernel_main()
  {
- 	disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
- 		"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+ 	disp_str("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
  	init_time();
  	init_process();
  	init_clock();
@@ -91,7 +92,7 @@ void init_process()
 		}
 
 		if (i < NR_TASKS) 
-		{     
+		{
         	/* TASK */
 			t	= task_table + i;
 			priv	= PRIVILEGE_TASK;
@@ -110,6 +111,7 @@ void init_process()
 		}
 
 		strcpy(p->name, t->name);	/* name of the process */
+		p->pid = i;
 		p->p_parent = NO_TASK;
 
 		if (strcmp(t->name, "INIT") != 0) {
@@ -144,6 +146,7 @@ void init_process()
 				      DA_32 | DA_LIMIT_4K | DA_DRW | priv << 5);
 		}
 
+		p->state = TASK_RUNNING;
 		p->regs.cs = INDEX_LDT_C << 3 |	SA_TIL | rpl;
 		p->regs.ds =
 		p->regs.es =
@@ -205,15 +208,29 @@ void disp_start_time()
 /*****************************************************************************
  *                                get_ticks
  *****************************************************************************/
- PUBLIC int get_ticks()
- {
- 	MESSAGE msg;
- 	reset_msg(&msg);
- 	msg.type = GET_TICKS;
- 	send_recv(BOTH, TASK_SYS, &msg);
- 	return msg.RETVAL;
- }
+PUBLIC int get_ticks()
+{
+	MESSAGE msg;
+	reset_msg(&msg);
+	msg.type = GET_TICKS;
+	send_recv(BOTH, TASK_SYS, &msg);
+	return msg.RETVAL;
+}
 
+void show_proc_info()
+{
+    int i;
+    printf("=============================================================================\n");
+    
+    printf("      PID      |    Name       |    Priority    | running?\n");
+    
+    printf("-----------------------------------------------------------------------------\n");
+    for ( i = 0 ; i < NR_TASKS + NR_PROCS ; ++i )//逐个遍历
+    {
+        printf("        %d           %s            %d                yes\n", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
+    }
+    printf("=============================================================================\n");
+}
 
 /**
  * @struct posix_tar_header
@@ -248,50 +265,50 @@ void disp_start_time()
  * 
  * @param filename The tar file.
  *****************************************************************************/
- void untar(const char * filename)
- {
- 	printf("[extract `%s'\n", filename);
- 	int fd = open(filename, O_RDWR);
- 	assert(fd != -1);
+void untar(const char * filename)
+{
+	printf("[extract `%s'\n", filename);
+	int fd = open(filename, O_RDWR);
+	assert(fd != -1);
 
- 	char buf[SECTOR_SIZE * 16];
- 	int chunk = sizeof(buf);
+	char buf[SECTOR_SIZE * 16];
+	int chunk = sizeof(buf);
 
- 	while (1) {
- 		read(fd, buf, SECTOR_SIZE);
- 		if (buf[0] == 0)
- 			break;
+	while (1) {
+		read(fd, buf, SECTOR_SIZE);
+		if (buf[0] == 0)
+			break;
 
- 		struct posix_tar_header * phdr = (struct posix_tar_header *)buf;
+		struct posix_tar_header * phdr = (struct posix_tar_header *)buf;
 
-		/* calculate the file size */
- 		char * p = phdr->size;
- 		int f_len = 0;
- 		while (*p)
-			f_len = (f_len * 8) + (*p++ - '0'); /* octal */
+	/* calculate the file size */
+		char * p = phdr->size;
+		int f_len = 0;
+		while (*p)
+		f_len = (f_len * 8) + (*p++ - '0'); /* octal */
 
- 			int bytes_left = f_len;
- 		int fdout = open(phdr->name, O_CREAT | O_RDWR);
- 		if (fdout == -1) {
- 			printf("    failed to extract file: %s\n", phdr->name);
- 			printf(" aborted]");
- 			return;
- 		}
- 		printf("    %s (%d bytes)\n", phdr->name, f_len);
- 		while (bytes_left) {
- 			int iobytes = min(chunk, bytes_left);
- 			read(fd, buf,
- 				((iobytes - 1) / SECTOR_SIZE + 1) * SECTOR_SIZE);
- 			write(fdout, buf, iobytes);
- 			bytes_left -= iobytes;
- 		}
- 		close(fdout);
- 	}
+			int bytes_left = f_len;
+		int fdout = open(phdr->name, O_CREAT | O_RDWR);
+		if (fdout == -1) {
+			printf("    failed to extract file: %s\n", phdr->name);
+			printf(" aborted]");
+			return;
+		}
+		printf("    %s (%d bytes)\n", phdr->name, f_len);
+		while (bytes_left) {
+			int iobytes = min(chunk, bytes_left);
+			read(fd, buf,
+				((iobytes - 1) / SECTOR_SIZE + 1) * SECTOR_SIZE);
+			write(fdout, buf, iobytes);
+			bytes_left -= iobytes;
+		}
+		close(fdout);
+	}
 
- 	close(fd);
+	close(fd);
 
- 	printf(" done]\n");
- }
+	printf(" done]\n");
+}
 
 /*****************************************************************************
  *                                shabby_shell
@@ -301,66 +318,88 @@ void disp_start_time()
  * 
  * @param tty_name  TTY file name.
  *****************************************************************************/
- void shabby_shell(const char * tty_name)
- {
- 	int fd_stdin  = open(tty_name, O_RDWR);
- 	assert(fd_stdin  == 0);
- 	int fd_stdout = open(tty_name, O_RDWR);
- 	assert(fd_stdout == 1);
+void shabby_shell(const char * tty_name)
+{
+	int fd_stdin  = open(tty_name, O_RDWR);
+	assert(fd_stdin  == 0);
+	int fd_stdout = open(tty_name, O_RDWR);
+	assert(fd_stdout == 1);
 
- 	char rdbuf[128];
+	char rdbuf[128];
 
- 	while (1) {
- 		write(1, "$ ", 2);
- 		int r = read(0, rdbuf, 70);
- 		rdbuf[r] = 0;
+	shell_routine();
 
- 		int argc = 0;
- 		char * argv[PROC_ORIGIN_STACK];
- 		char * p = rdbuf;
- 		char * s;
- 		int word = 0;
- 		char ch;
- 		do {
- 			ch = *p;
- 			if (*p != ' ' && *p != 0 && !word) {
- 				s = p;
- 				word = 1;
- 			}
- 			if ((*p == ' ' || *p == 0) && word) {
- 				word = 0;
- 				argv[argc++] = s;
- 				*p = 0;
- 			}
- 			p++;
- 		} while(ch);
- 		argv[argc] = 0;
-
- 		int fd = open(argv[0], O_RDWR);
- 		if (fd == -1) {
- 			if (rdbuf[0]) {
- 				write(1, "{", 1);
- 				write(1, rdbuf, r);
- 				write(1, "}\n", 2);
- 			}
- 		}
- 		else {
- 			close(fd);
- 			int pid = fork();
-			if (pid != 0) { /* parent */
- 			int s;
- 			wait(&s);
- 		}
-			else {	/* child */
- 		execv(argv[0], argv);
- 	}
- }
+	close(1);
+	close(0);
 }
 
-close(1);
-close(0);
-}
+void shell_routine()
+{
+	char rdbuf[128];
+	
+	while (1) 
+	{
+		write(1, "novemser$ ", 10);
+		int r = read(0, rdbuf, 70);
+		rdbuf[r] = 0;
 
+		int argc = 0;
+		char * argv[PROC_ORIGIN_STACK];
+		char * p = rdbuf;
+		char * s;
+		int word = 0;
+		char ch;
+		do {
+			ch = *p;
+			if (*p != ' ' && *p != 0 && !word) 
+			{
+				s = p;
+				word = 1;
+			}
+			if ((*p == ' ' || *p == 0) && word) 
+			{
+				word = 0;
+				argv[argc++] = s;
+				*p = 0;
+			}
+			p++;
+		} while(ch);
+		argv[argc] = 0;
+
+		int fd = open(argv[0], O_RDWR);
+		if (fd == -1) 
+		{
+			if (rdbuf[0]) 
+			{
+				if (strcmp(rdbuf, "showproc") == 0)
+				{
+					show_proc_info();
+				}
+				else
+				{
+					printf("Un recognized command ");
+					write(1, "\"", 1);
+					write(1, rdbuf, r);
+					write(1, "\"\n", 2);
+				}
+			}
+		}
+		else 
+		{
+			close(fd);
+			int pid = fork();
+			if (pid != 0) 
+			{ /* parent */
+				int s;
+				wait(&s);
+			}
+			else 
+			{	/* child */
+				execv(argv[0], argv);
+			}
+		}
+	}
+}
 /*****************************************************************************
  *                                Init
  *****************************************************************************/
@@ -384,54 +423,123 @@ close(0);
  	char * tty_list[] = {"/dev_tty1", "/dev_tty2"};
 
  	int i;
- 	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) {
+ 	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) 
+ 	{
  		int pid = fork();
-		if (pid != 0) { /* parent process */
- 		printf("[parent is running, child pid:%d]\n", pid);
- 	}
-		else {	/* child process */
- 	printf("[child is running, pid:%d]\n", getpid());
- 	close(fd_stdin);
- 	close(fd_stdout);
+		if (pid != 0) 
+		{ /* parent process */
+	 		printf("[parent is running, child pid:%d]\n", pid);
+	 	}
+		else 
+		{	/* child process */
+			printf("[child is running, pid:%d]\n", getpid());
+			close(fd_stdin);
+			close(fd_stdout);
 
- 	shabby_shell(tty_list[i]);
- 	assert(0);
- }
-}
+			shabby_shell(tty_list[i]);
+			assert(0);
+	 	}
+	}
 
-while (1) {
-	int s;
-	int child = wait(&s);
-	printf("child (%d) exited with status: %d.\n", child, s);
-}
+	milli_delay(1000);
+	printf("\n");
+	shell_routine();
+	
+	// int fd;
+	// int n;
+	// const char filename[] = "Imfile";
+	// const char bufw[] = "What the hell";
+	// const int rd_bytes  = 3;
+	// char bufr[rd_bytes];
 
-assert(0);
+	// fd = open(filename, O_CREAT | O_RDWR);
+	// assert(fd != -1);
+	// printf("File created. fd: %d\n", fd);
+
+	// // write
+	// n = write(fd, bufw, strlen(bufw));
+	// assert(n == strlen(bufw));
+
+	// // close
+	// close(fd);
+	// printf("File writted.\n");
+	
+	// // open
+	// fd = open(filename, O_RDWR);
+	// assert(fd != -1);
+	// printf("File opened.\n");
+
+	// // read
+	// n = read(fd, bufr, rd_bytes);
+	// assert(n == rd_bytes);
+	// bufr[n] = 0;
+	// printf("%d bytes read: %s\n", n, bufr);
+	
+	
+	// // close
+	// close(fd);
+	
+	while (1) {
+		int s;
+		int child = wait(&s);
+		printf("child (%d) exited with status: %d.\n", child, s);
+	}
+
+	assert(0);
 }
 
 
 /*======================================================================*
                                TestA
  *======================================================================*/
-                               void TestA()
-                               {
-                               	for(;;);
-                               }
+void TestA()
+{
+	//spin("TestA");
+	// char tty_name[] = "/dev_tty1";
+
+	// int fd_stdin = open(tty_name, O_RDWR);
+	// int fd_stdout = open(tty_name, O_RDWR);
+
+	// char rdbuf[128];
+
+	// while (1)
+	// {
+	// 	write(fd_stdout, "root$ ", 2);
+	// 	int r = read(fd_stdin, rdbuf, 70);
+	// 	rdbuf[r] = 0;
+
+	// 	if (strcmp(rdbuf, "hello") == 0)
+	// 	{
+	// 		write(fd_stdout, "Hello Nova~\n", 13);
+	// 	}
+	// 	else
+	// 	{
+	// 		if (rdbuf[0])
+	// 		{
+	// 			write(fd_stdout, "{", 1);
+	// 			write(fd_stdout, rdbuf, r);
+	// 			write(fd_stdout, "}\n", 2);
+	// 		}
+	// 	}
+	// }
+	for(;;);
+}
 
 /*======================================================================*
                                TestB
  *======================================================================*/
-                               void TestB()
-                               {
-                               	for(;;);
-                               }
+void TestB()
+{
+	for(;;);
+}
 
 /*======================================================================*
                                TestB
  *======================================================================*/
-                               void TestC()
-                               {
-                               	for(;;);
-                               }
+void TestC()
+{
+	for(;;);
+}
 
 /*****************************************************************************
  *                                panic
@@ -451,3 +559,11 @@ assert(0);
 	/* should never arrive here */
  	__asm__ __volatile__("ud2");
  }
+
+// Clear the screen
+void clear()
+{
+	clear_screen(0, console_table[current_console].cursor);
+	console_table[current_console].crtc_start = 0;
+	console_table[current_console].cursor = 0;
+}

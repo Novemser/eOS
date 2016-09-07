@@ -2,7 +2,7 @@
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                proc.c
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                                                    Forrest Yu, 2005
+                                                    
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 #include "type.h"
@@ -24,6 +24,7 @@ PRIVATE int  msg_receive(struct proc* current, int src, MESSAGE* m);
 PRIVATE int  deadlock(int src, int dest);
 
 long startup_time=0;
+struct proc* current;
 
 /*****************************************************************************
  *                                schedule
@@ -32,7 +33,7 @@ long startup_time=0;
  * <Ring 0> Choose one proc to run.
  * 
  *****************************************************************************/
-PUBLIC void schedule()
+PUBLIC void schedule(void)
 {
 	struct proc*	p;
 	int		greatest_ticks = 0;
@@ -40,9 +41,10 @@ PUBLIC void schedule()
 	while (!greatest_ticks) {
 		for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
 			if (p->p_flags == 0) {
-				if (p->ticks > greatest_ticks) {
+				if (p->ticks > greatest_ticks && p->state == TASK_RUNNING) {
 					greatest_ticks = p->ticks;
 					p_proc_ready = p;
+					current = p_proc_ready;
 				}
 			}
 		}
@@ -50,7 +52,10 @@ PUBLIC void schedule()
 		if (!greatest_ticks)
 			for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
 				if (p->p_flags == 0)
+				{
+					p->state = TASK_RUNNING;
 					p->ticks = p->priority;
+				}
 	}
 }
 
@@ -480,6 +485,28 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 		assert(p_who_wanna_recv->has_int_msg == 0);
 	}
 
+	return 0;
+}
+
+/*****************************************************************************
+ *                                sys_pause
+ *****************************************************************************/
+/**
+ * <Ring 0> Pause a process 
+ * 
+ * @param task_nr  The task which will be informed.
+ *****************************************************************************/
+int proc_block(void)
+{
+	current->state = TASK_BLOCKED;
+	schedule();
+	return 0;
+}
+
+int proc_restore(void)
+{
+	current->state = TASK_READY;
+	schedule();
 	return 0;
 }
 

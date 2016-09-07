@@ -4,7 +4,9 @@
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                                     
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
+#define TASK_RUNNING			0
+#define TASK_READY				1
+#define TASK_BLOCKED			2
 
 struct stackframe {	/* proc_ptr points here				↑ Low			*/
 	u32	gs;		/* ┓						│			*/
@@ -30,14 +32,15 @@ struct stackframe {	/* proc_ptr points here				↑ Low			*/
 
 struct proc {
 	struct stackframe regs;    /* process registers saved in stack frame */
-
+	
+	
 	u16 ldt_sel;               /* gdt selector giving ldt base and limit */
 	struct descriptor ldts[LDT_SIZE]; /* local descs for code and data */
 
     int ticks;                 /* remained ticks */
     int priority;
 
-	/* u32 pid;                   /\* process id passed in from MM *\/ */
+	u32 pid;                   /* process id passed in from MM */ 
 	char name[16];		   /* name of the process */
 
 	int  p_flags;              /**
@@ -68,6 +71,8 @@ struct proc {
 	int exit_status; /**< for parent */
 
 	struct file_desc * filp[NR_FILES];
+	int state;					/* -1 unrunnable, 0 runnable, >0 stopped */
+
 };
 
 struct task {
@@ -84,6 +89,9 @@ struct task {
 #define NR_NATIVE_PROCS		4
 #define FIRST_PROC		proc_table[0]
 #define LAST_PROC		proc_table[NR_TASKS + NR_PROCS - 1]
+
+#define FIRST_TASK 		task_table[0]
+#define LAST_TASK 		task_table[NR_TASKS - 1]
 
 /**
  * All forked proc will use memory above PROCS_BASE.

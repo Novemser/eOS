@@ -10,6 +10,7 @@
 #undef	EXTERN
 #define	EXTERN
 #endif
+                                                    
 
 EXTERN	int	ticks;
 
