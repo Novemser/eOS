@@ -32,6 +32,7 @@ EXTERN	int	key_pressed; /**
 
 EXTERN	struct tss	tss;
 EXTERN	struct proc*	p_proc_ready;
+EXTERN  int forked_proc_cnt;
 
 extern	char		task_stack[];
 extern	struct proc	proc_table[];

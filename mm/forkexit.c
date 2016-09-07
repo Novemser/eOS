@@ -54,7 +54,7 @@ PUBLIC int do_fork()
 	p->ldt_sel = child_ldt_sel;
 	p->p_parent = pid;
 	sprintf(p->name, "%s_%d", proc_table[pid].name, child_pid);
-
+	p->pid = child_pid;
 	/* duplicate the process: T, D & S */
 	struct descriptor * ppd;
 
@@ -128,6 +128,8 @@ PUBLIC int do_fork()
 	m.PID = 0;
 	send_recv(SEND, child_pid, &m);
 
+	forked_proc_cnt++;
+	
 	return 0;
 }
 
@@ -174,6 +176,7 @@ PUBLIC int do_fork()
  *****************************************************************************/
 PUBLIC void do_exit(int status)
 {
+	forked_proc_cnt--;
 	int i;
 	int pid = mm_msg.source; /* PID of caller */
 	int parent_pid = proc_table[pid].p_parent;

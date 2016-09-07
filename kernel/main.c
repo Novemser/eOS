@@ -219,13 +219,16 @@ PUBLIC int get_ticks()
 
 void show_proc_info()
 {
-    int i;
+	int total = NR_TASKS + NR_NATIVE_PROCS + forked_proc_cnt;
+	printf("Total process:     %d\n", total);
     printf("=============================================================================\n");
-    
+
     printf("      PID      |    Name       |    Priority    | running?\n");
     
     printf("-----------------------------------------------------------------------------\n");
-    for ( i = 0 ; i < NR_TASKS + NR_PROCS ; ++i )//逐个遍历
+
+    // Iterate all the processes exist in the OS
+    for (int i = 0 ; i < NR_TASKS + NR_NATIVE_PROCS + forked_proc_cnt; ++i )
     {
         printf("        %d           %s            %d                yes\n", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
     }
@@ -414,8 +417,6 @@ void shell_routine()
  	int fd_stdout = open("/dev_tty0", O_RDWR);
  	assert(fd_stdout == 1);
 
- 	printf("Init() is running ...\n");
-
 	/* extract `cmd.tar' */
  	untar("/cmd.tar");
 
@@ -428,11 +429,11 @@ void shell_routine()
  		int pid = fork();
 		if (pid != 0) 
 		{ /* parent process */
-	 		printf("[parent is running, child pid:%d]\n", pid);
+	 		//printf("[parent is running, child pid:%d]\n", pid);
 	 	}
 		else 
 		{	/* child process */
-			printf("[child is running, pid:%d]\n", getpid());
+			//printf("[child is running, pid:%d]\n", getpid());
 			close(fd_stdin);
 			close(fd_stdout);
 
