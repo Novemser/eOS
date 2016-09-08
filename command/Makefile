@@ -8,11 +8,11 @@ DASM		= objdump
 CC		= gcc
 LD		= ld
 ASMFLAGS	= -I ../include/ -I ../include/sys/ -I ../include/asm/ -f elf
-CFLAGS		= -I ../include/ -I ../include/sys/ -I ../include/asm/ -c -fno-builtin -fno-stack-protector -Wall
+CFLAGS		= -I ../include/ -I ../include/sys/ -I ../include/asm/ -c -fno-builtin -fno-stack-protector -Wall -lm
 LDFLAGS		= -Ttext 0x1000 -Map ../krnl.map
 DASMFLAGS	= -D
 LIB		= ../lib/orangescrt.a
-BIN		= echo pwd hello cpuinfo ls
+BIN		= echo pwd hello cpuinfo ls guess snake help
 
 # All Phony Targets
 .PHONY : everything final clean realclean disasm all install
@@ -54,7 +54,7 @@ pwd : pwd.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
 hello.o: hello.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -lm -o $@ $<
 
 hello : hello.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
@@ -69,4 +69,22 @@ ls.o: ls.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 ls : ls.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+guess.o: guessgame.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+guess : guess.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+snake.o: snake.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+snake : snake.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+	
+help.o: help.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+help : help.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?

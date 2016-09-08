@@ -2,6 +2,21 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+#include "type.h"
+#include "stdio.h"
+#include "const.h"
+#include "protect.h"
+#include "string.h"
+#include "fs.h"
+#include "proc.h"
+#include "tty.h"
+#include "console.h"
+#include "global.h"
+#include "proto.h"
+#include "io.h"
+#include "system.h"
+#include "time.h"
+#include "stdarg.h"
 
 typedef long long int64_t;
 #define MISSING_USLEEP
@@ -162,6 +177,15 @@ int main(int argc, char **argv)
             int usec_delay;
 
             tsc_start = rdtsc();
+
+            struct time t_start, t_end;
+
+            MESSAGE msg;
+            msg.type = GET_RTC_TIME;
+            msg.BUF= &t_start;
+
+            send_recv(BOTH, TASK_SYS, &msg);
+
             //gettimeofday(&tv_start, NULL);
 #ifdef	MISSING_USLEEP
             //sleep(1);
@@ -170,12 +194,16 @@ int main(int argc, char **argv)
 #endif
             tsc_end = rdtsc();
             //gettimeofday(&tv_end, NULL);
+            MESSAGE msg2;
+            msg2.type = GET_RTC_TIME;
+            msg2.BUF= &t_end;
+            
+            send_recv(BOTH, TASK_SYS, &msg2);
 
-            usec_delay = 1000000 * (tv_end.tv_sec - tv_start.tv_sec)
-                         + (tv_end.tv_usec - tv_start.tv_usec);
+            usec_delay = 1000000 * (t_end.second + 1 - t_start.second);
 
             printf("cpu MHz        : %d\n",
-                   (int)(tsc_end-tsc_start));
+                   (int)(tsc_end - tsc_start)/5 );
         }
     }
 

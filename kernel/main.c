@@ -67,7 +67,10 @@ static void init_time(void)
  	init_clock();
  	init_keyboard();
 
- 	disp_start_time();
+	disp_str("Welcome!\n");
+	disp_str("Kernel startup at\n");
+ 	
+ 	disp_start_timel();
 
  	restart();
 
@@ -179,7 +182,7 @@ void init_process()
 	p_proc_ready	= proc_table;
 }
 
-void disp_start_time()
+void disp_start_timel()
 {
 	unsigned char m,s,h,y,mon,d;
 	s=CMOS_READ(0);//秒
@@ -188,8 +191,6 @@ void disp_start_time()
 	y=CMOS_READ(9);
 	mon=CMOS_READ(8)-1;
 	d=CMOS_READ(7);
-	disp_str("Welcome!\n");
-	disp_str("Kernel startup at\n");
 
 	disp_str("20");
 	disp_int(BCD_TO_BIN(y));
@@ -204,6 +205,16 @@ void disp_start_time()
 	disp_str(":");
 	disp_int(BCD_TO_BIN(s));
 	disp_str("\n");
+}
+
+struct time get_time_RTC()
+{
+	struct time t;
+	MESSAGE msg;
+	msg.type = GET_RTC_TIME;
+	msg.BUF= &t;
+	send_recv(BOTH, TASK_SYS, &msg);
+	return t;
 }
 /*****************************************************************************
  *                                get_ticks
@@ -220,19 +231,49 @@ PUBLIC int get_ticks()
 void show_proc_info()
 {
 	int total = NR_TASKS + NR_NATIVE_PROCS + forked_proc_cnt;
-	printf("Total process:     %d\n", total);
-    printf("=============================================================================\n");
+	int running = 0;
+    printf("\n=============================================================================\n");
 
-    printf("      PID      |    Name       |    Priority    | running?\n");
+    printf("|   PID   |   Process Name   |  Running Ticks  |    State   |\n");
     
     printf("-----------------------------------------------------------------------------\n");
 
     // Iterate all the processes exist in the OS
     for (int i = 0 ; i < NR_TASKS + NR_NATIVE_PROCS + forked_proc_cnt; ++i )
     {
-        printf("        %d           %s            %d                yes\n", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
+    	// Minor display improvement....23333
+    	if (proc_table[i].pid >= 10)
+    	{
+    		printf("  %d          %s             %d             ", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
+    		
+    	}
+    	else
+    	{
+    		printf("  %d           %s               %d              ", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
+
+    	}
+    	// Show different process state
+    	switch(proc_table[i].state)
+    	{
+    		case TASK_READY:
+	    		printf("READY\n");
+	    		break;
+    		case TASK_RUNNING:
+	    		printf("RUNNING\n");
+				running++;
+	    		break;
+    		case TASK_BLOCKED:
+	    		printf("BLOCKED\n");
+	    		break;
+ 			default:
+ 				assert(1>2);
+ 				break;
+    	}
     }
+
     printf("=============================================================================\n");
+    printf("Total process:     %d\n", total);
+    printf("Running:           %d\n\n", running);
 }
 
 /**
@@ -270,9 +311,10 @@ void show_proc_info()
  *****************************************************************************/
 void untar(const char * filename)
 {
-	printf("[extract `%s'\n", filename);
+	//printf("[extract `%s'\n", filename);
 	int fd = open(filename, O_RDWR);
 	assert(fd != -1);
+	int cnt2 = 0;
 
 	char buf[SECTOR_SIZE * 16];
 	int chunk = sizeof(buf);
@@ -281,6 +323,8 @@ void untar(const char * filename)
 		read(fd, buf, SECTOR_SIZE);
 		if (buf[0] == 0)
 			break;
+
+		cnt2++;
 
 		struct posix_tar_header * phdr = (struct posix_tar_header *)buf;
 
@@ -293,11 +337,11 @@ void untar(const char * filename)
 			int bytes_left = f_len;
 		int fdout = open(phdr->name, O_CREAT | O_RDWR);
 		if (fdout == -1) {
-			printf("    failed to extract file: %s\n", phdr->name);
-			printf(" aborted]");
+			printf("Failed to extract file: %s\n", phdr->name);
+			printf("Extracting aborted");
 			return;
 		}
-		printf("    %s (%d bytes)\n", phdr->name, f_len);
+		//printf("    %s (%d bytes)\n", phdr->name, f_len);
 		while (bytes_left) {
 			int iobytes = min(chunk, bytes_left);
 			read(fd, buf,
@@ -310,7 +354,7 @@ void untar(const char * filename)
 
 	close(fd);
 
-	printf(" done]\n");
+	printf("Extract %d binary files done.\n", cnt2);
 }
 
 /*****************************************************************************
@@ -374,13 +418,19 @@ void shell_routine()
 		{
 			if (rdbuf[0]) 
 			{
+				// Recognize some command
 				if (strcmp(rdbuf, "showproc") == 0)
 				{
 					show_proc_info();
 				}
+				else if (strcmp(rdbuf, "time") == 0)
+				{
+					struct time t = get_time_RTC();
+					printf("%d/%d/%d %d:%d:%d\n", t.year, t.month, t.day, t.hour, t.minute, t.second);
+				}
 				else
 				{
-					printf("Un recognized command ");
+					printf("Unrecognized command ");
 					write(1, "\"", 1);
 					write(1, rdbuf, r);
 					write(1, "\"\n", 2);
@@ -410,75 +460,41 @@ void shell_routine()
  * The hen.
  * 
  *****************************************************************************/
- void Init()
- {
- 	int fd_stdin  = open("/dev_tty0", O_RDWR);
- 	assert(fd_stdin  == 0);
- 	int fd_stdout = open("/dev_tty0", O_RDWR);
- 	assert(fd_stdout == 1);
+void Init()
+{
+	int fd_stdin  = open("/dev_tty0", O_RDWR);
+	assert(fd_stdin  == 0);
+	int fd_stdout = open("/dev_tty0", O_RDWR);
+	assert(fd_stdout == 1);
 
+	printf("Now loading...\n");
 	/* extract `cmd.tar' */
- 	untar("/cmd.tar");
+	untar("/cmd.tar");
+	printf("\nLoading finished. Use \"help\" to know more.\n");
 
 
- 	char * tty_list[] = {"/dev_tty1", "/dev_tty2"};
+	char * tty_list[] = {"/dev_tty1", "/dev_tty2"};
 
- 	int i;
- 	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) 
- 	{
- 		int pid = fork();
-		if (pid != 0) 
-		{ /* parent process */
-	 		//printf("[parent is running, child pid:%d]\n", pid);
-	 	}
-		else 
-		{	/* child process */
-			//printf("[child is running, pid:%d]\n", getpid());
+	int i;
+	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) 
+	{
+		int pid = fork();
+		/* parent process */
+		if (pid != 0) {}
+		/* child process */
+		else
+		{
 			close(fd_stdin);
 			close(fd_stdout);
 
 			shabby_shell(tty_list[i]);
 			assert(0);
-	 	}
+		}
 	}
 
 	milli_delay(1000);
 	printf("\n");
 	shell_routine();
-	
-	// int fd;
-	// int n;
-	// const char filename[] = "Imfile";
-	// const char bufw[] = "What the hell";
-	// const int rd_bytes  = 3;
-	// char bufr[rd_bytes];
-
-	// fd = open(filename, O_CREAT | O_RDWR);
-	// assert(fd != -1);
-	// printf("File created. fd: %d\n", fd);
-
-	// // write
-	// n = write(fd, bufw, strlen(bufw));
-	// assert(n == strlen(bufw));
-
-	// // close
-	// close(fd);
-	// printf("File writted.\n");
-	
-	// // open
-	// fd = open(filename, O_RDWR);
-	// assert(fd != -1);
-	// printf("File opened.\n");
-
-	// // read
-	// n = read(fd, bufr, rd_bytes);
-	// assert(n == rd_bytes);
-	// bufr[n] = 0;
-	// printf("%d bytes read: %s\n", n, bufr);
-	
-	
-	// // close
-	// close(fd);
 	
 	while (1) {
 		int s;
@@ -495,34 +511,6 @@ void shell_routine()
  *======================================================================*/
 void TestA()
 {
-	//spin("TestA");
-	// char tty_name[] = "/dev_tty1";
-
-	// int fd_stdin = open(tty_name, O_RDWR);
-	// int fd_stdout = open(tty_name, O_RDWR);
-
-	// char rdbuf[128];
-
-	// while (1)
-	// {
-	// 	write(fd_stdout, "root$ ", 2);
-	// 	int r = read(fd_stdin, rdbuf, 70);
-	// 	rdbuf[r] = 0;
-
-	// 	if (strcmp(rdbuf, "hello") == 0)
-	// 	{
-	// 		write(fd_stdout, "Hello Nova~\n", 13);
-	// 	}
-	// 	else
-	// 	{
-	// 		if (rdbuf[0])
-	// 		{
-	// 			write(fd_stdout, "{", 1);
-	// 			write(fd_stdout, rdbuf, r);
-	// 			write(fd_stdout, "}\n", 2);
-	// 		}
-	// 	}
-	// }
 	for(;;);
 }
 
