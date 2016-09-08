@@ -1,0 +1,390 @@
+Archive member included to satisfy reference by file (symbol)
+
+../lib/orangescrt.a(printf.o)
+                              ls.o (printl)
+../lib/orangescrt.a(vsprintf.o)
+                              ../lib/orangescrt.a(printf.o) (vsprintf)
+../lib/orangescrt.a(string.o)
+                              ../lib/orangescrt.a(vsprintf.o) (memset)
+../lib/orangescrt.a(misc.o)   ../lib/orangescrt.a(printf.o) (assertion_failure)
+../lib/orangescrt.a(write.o)  ../lib/orangescrt.a(printf.o) (write)
+../lib/orangescrt.a(exit.o)   start.o (exit)
+../lib/orangescrt.a(syscall.o)
+                              ../lib/orangescrt.a(misc.o) (sendrec)
+
+Discarded input sections
+
+ .note.GNU-stack
+                0x0000000000000000        0x0 ls.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 ../lib/orangescrt.a(printf.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 ../lib/orangescrt.a(vsprintf.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 ../lib/orangescrt.a(misc.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 ../lib/orangescrt.a(write.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 ../lib/orangescrt.a(exit.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+Address of section .text set to 0x1000
+LOAD ls.o
+LOAD start.o
+LOAD ../lib/orangescrt.a
+                [!provide]                        PROVIDE (__executable_start, 0x8048000)
+                0x0000000008048074                . = (0x8048000 + SIZEOF_HEADERS)
+
+.interp
+ *(.interp)
+
+.note.gnu.build-id
+ *(.note.gnu.build-id)
+
+.hash
+ *(.hash)
+
+.gnu.hash
+ *(.gnu.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.dyn        0x0000000008048074        0x0
+ *(.rel.init)
+ *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)
+ .rel.text      0x0000000008048074        0x0 ls.o
+ *(.rel.fini)
+ *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)
+ *(.rel.data.rel.ro .rel.data.rel.ro.* .rel.gnu.linkonce.d.rel.ro.*)
+ *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
+ *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)
+ *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)
+ *(.rel.ctors)
+ *(.rel.dtors)
+ *(.rel.got)
+ *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
+ *(.rel.ifunc)
+
+.rel.plt        0x0000000008048074        0x0
+ *(.rel.plt)
+                [!provide]                        PROVIDE (__rel_iplt_start, .)
+ *(.rel.iplt)
+ .rel.iplt      0x0000000008048074        0x0 ls.o
+                [!provide]                        PROVIDE (__rel_iplt_end, .)
+
+.init
+ *(SORT(.init))
+
+.plt            0x0000000008048080        0x0
+ *(.plt)
+ *(.iplt)
+ .iplt          0x0000000008048080        0x0 ls.o
+
+.plt.got
+ *(.plt.got)
+
+.text           0x0000000000001000      0x878
+ *(.text.unlikely .text.*_unlikely .text.unlikely.*)
+ *(.text.exit .text.exit.*)
+ *(.text.startup .text.startup.*)
+ *(.text.hot .text.hot.*)
+ *(.text .stub .text.* .gnu.linkonce.t.*)
+ .text          0x0000000000001000      0x13c ls.o
+                0x0000000000001000                main
+ *fill*         0x000000000000113c        0x4 
+ .text          0x0000000000001140        0xe start.o
+                0x0000000000001140                _start
+ .text          0x000000000000114e       0xad ../lib/orangescrt.a(printf.o)
+                0x000000000000114e                printf
+                0x00000000000011b9                printl
+ .text          0x00000000000011fb      0x305 ../lib/orangescrt.a(vsprintf.o)
+                0x0000000000001259                vsprintf
+                0x00000000000014da                sprintf
+ .text          0x0000000000001500       0x78 ../lib/orangescrt.a(string.o)
+                0x0000000000001500                memcpy
+                0x0000000000001529                memset
+                0x000000000000154a                strcpy
+                0x0000000000001562                strlen
+ .text          0x0000000000001578      0x256 ../lib/orangescrt.a(misc.o)
+                0x0000000000001578                send_recv
+                0x0000000000001632                memcmp
+                0x00000000000016a8                strcmp
+                0x000000000000171b                strcat
+                0x000000000000177a                spin
+                0x0000000000001795                assertion_failure
+ .text          0x00000000000017ce       0x37 ../lib/orangescrt.a(write.o)
+                0x00000000000017ce                write
+ .text          0x0000000000001805       0x4a ../lib/orangescrt.a(exit.o)
+                0x0000000000001805                exit
+ *fill*         0x000000000000184f        0x1 
+ .text          0x0000000000001850       0x28 ../lib/orangescrt.a(syscall.o)
+                0x0000000000001850                sendrec
+                0x000000000000186a                printx
+ *(.gnu.warning)
+
+.fini
+ *(SORT(.fini))
+                [!provide]                        PROVIDE (__etext, .)
+                [!provide]                        PROVIDE (_etext, .)
+                [!provide]                        PROVIDE (etext, .)
+
+.rodata         0x0000000000001878      0x130
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata        0x0000000000001878       0x4a ls.o
+ .rodata        0x00000000000018c2       0x14 ../lib/orangescrt.a(printf.o)
+ *fill*         0x00000000000018d6        0x2 
+ .rodata        0x00000000000018d8       0xad ../lib/orangescrt.a(misc.o)
+ .rodata        0x0000000000001985       0x23 ../lib/orangescrt.a(exit.o)
+
+.rodata1
+ *(.rodata1)
+
+.eh_frame_hdr
+ *(.eh_frame_hdr)
+ *(.eh_frame_entry .eh_frame_entry.*)
+
+.eh_frame       0x00000000000019a8      0x1ec
+ *(.eh_frame)
+ .eh_frame      0x00000000000019a8       0x50 ls.o
+ .eh_frame      0x00000000000019f8       0x40 ../lib/orangescrt.a(printf.o)
+                                         0x58 (size before relaxing)
+ .eh_frame      0x0000000000001a38       0x60 ../lib/orangescrt.a(vsprintf.o)
+                                         0x78 (size before relaxing)
+ .eh_frame      0x0000000000001a98       0xbc ../lib/orangescrt.a(misc.o)
+                                         0xd4 (size before relaxing)
+ .eh_frame      0x0000000000001b54       0x20 ../lib/orangescrt.a(write.o)
+                                         0x38 (size before relaxing)
+ .eh_frame      0x0000000000001b74       0x20 ../lib/orangescrt.a(exit.o)
+                                         0x38 (size before relaxing)
+ *(.eh_frame.*)
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.gnu_extab
+ *(.gnu_extab*)
+
+.exception_ranges
+ *(.exception_ranges .exception_ranges*)
+                0x0000000000002b94                . = DATA_SEGMENT_ALIGN (0x1000, 0x1000)
+
+.eh_frame
+ *(.eh_frame)
+ *(.eh_frame.*)
+
+.gnu_extab
+ *(.gnu_extab)
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.exception_ranges
+ *(.exception_ranges .exception_ranges*)
+
+.tdata
+ *(.tdata .tdata.* .gnu.linkonce.td.*)
+
+.tbss
+ *(.tbss .tbss.* .gnu.linkonce.tb.*)
+ *(.tcommon)
+
+.preinit_array  0x0000000000002b94        0x0
+                [!provide]                        PROVIDE (__preinit_array_start, .)
+ *(.preinit_array)
+                [!provide]                        PROVIDE (__preinit_array_end, .)
+
+.init_array     0x0000000000002b94        0x0
+                [!provide]                        PROVIDE (__init_array_start, .)
+ *(SORT(.init_array.*) SORT(.ctors.*))
+ *(.init_array EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .ctors)
+                [!provide]                        PROVIDE (__init_array_end, .)
+
+.fini_array     0x0000000000002b94        0x0
+                [!provide]                        PROVIDE (__fini_array_start, .)
+ *(SORT(.fini_array.*) SORT(.dtors.*))
+ *(.fini_array EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .dtors)
+                [!provide]                        PROVIDE (__fini_array_end, .)
+
+.ctors
+ *crtbegin.o(.ctors)
+ *crtbegin?.o(.ctors)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+ *(SORT(.ctors.*))
+ *(.ctors)
+
+.dtors
+ *crtbegin.o(.dtors)
+ *crtbegin?.o(.dtors)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+ *(SORT(.dtors.*))
+ *(.dtors)
+
+.jcr
+ *(.jcr)
+
+.data.rel.ro
+ *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
+ *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*)
+
+.dynamic
+ *(.dynamic)
+
+.got
+ *(.got)
+ *(.igot)
+                0x0000000000002b94                . = DATA_SEGMENT_RELRO_END (., (SIZEOF (.got.plt) >= 0xc)?0xc:0x0)
+
+.got.plt        0x0000000000002b94        0x0
+ *(.got.plt)
+ *(.igot.plt)
+ .igot.plt      0x0000000000002b94        0x0 ls.o
+
+.data           0x0000000000002b94        0x0
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x0000000000002b94        0x0 ls.o
+ .data          0x0000000000002b94        0x0 ../lib/orangescrt.a(printf.o)
+ .data          0x0000000000002b94        0x0 ../lib/orangescrt.a(vsprintf.o)
+ .data          0x0000000000002b94        0x0 ../lib/orangescrt.a(misc.o)
+ .data          0x0000000000002b94        0x0 ../lib/orangescrt.a(write.o)
+ .data          0x0000000000002b94        0x0 ../lib/orangescrt.a(exit.o)
+
+.data1
+ *(.data1)
+                0x0000000000002b94                _edata = .
+                [!provide]                        PROVIDE (edata, .)
+                0x0000000000002b94                . = .
+                0x0000000000002b94                __bss_start = .
+
+.bss            0x0000000000002b94        0x0
+ *(.dynbss)
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x0000000000002b94        0x0 ls.o
+ .bss           0x0000000000002b94        0x0 ../lib/orangescrt.a(printf.o)
+ .bss           0x0000000000002b94        0x0 ../lib/orangescrt.a(vsprintf.o)
+ .bss           0x0000000000002b94        0x0 ../lib/orangescrt.a(misc.o)
+ .bss           0x0000000000002b94        0x0 ../lib/orangescrt.a(write.o)
+ .bss           0x0000000000002b94        0x0 ../lib/orangescrt.a(exit.o)
+ *(COMMON)
+                0x0000000000002b94                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x0000000000002b94                . = ALIGN (0x4)
+                0x0000000000002b94                . = SEGMENT_START ("ldata-segment", .)
+                0x0000000000002b94                . = ALIGN (0x4)
+                0x0000000000002b94                _end = .
+                [!provide]                        PROVIDE (end, .)
+                0x0000000000002b94                . = DATA_SEGMENT_END (.)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x0000000000000000       0x34
+ *(.comment)
+ .comment       0x0000000000000000       0x34 ls.o
+                                         0x35 (size before relaxing)
+ .comment       0x0000000000000034       0x35 ../lib/orangescrt.a(printf.o)
+ .comment       0x0000000000000034       0x35 ../lib/orangescrt.a(vsprintf.o)
+ .comment       0x0000000000000034       0x35 ../lib/orangescrt.a(misc.o)
+ .comment       0x0000000000000034       0x35 ../lib/orangescrt.a(write.o)
+ .comment       0x0000000000000034       0x35 ../lib/orangescrt.a(exit.o)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info .gnu.linkonce.wi.*)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line .debug_line.* .debug_line_end)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges
+ *(.debug_ranges)
+
+.debug_macro
+ *(.debug_macro)
+
+.gnu.attributes
+ *(.gnu.attributes)
+
+/DISCARD/
+ *(.note.GNU-stack)
+ *(.gnu_debuglink)
+ *(.gnu.lto_*)
+OUTPUT(ls elf32-i386)
