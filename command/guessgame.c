@@ -12,7 +12,7 @@
 #include "io.h"
 #include "system.h"
 #include "time.h"
-#include "stdarg.h"
+
 
 int isdigit(char c)
 {

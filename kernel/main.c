@@ -19,7 +19,7 @@
 #include "io.h"
 #include "system.h"
 #include "time.h"
-#include "stdarg.h"
+
 
 extern long startup_time;
 extern long kernel_mktime(struct tm * tm);
@@ -160,7 +160,9 @@ void init_process()
 		p->regs.esp	= (u32)stk;
 		p->regs.eflags	= eflags;
 
-		p->ticks = p->priority = prio;
+		p->ticks = p->priority =p->se.weight = prio;
+		// Initial virtual run time
+		p->se.vruntime = default_vruntime;
 
 		p->p_flags = 0;
 		p->p_msg = 0;
@@ -234,22 +236,22 @@ void show_proc_info()
 	int running = 0;
     printf("\n=============================================================================\n");
 
-    printf("|   PID   |   Process Name   |  Running Ticks  |    State   |\n");
+    printf("|   PID   |   Process Name   |  Priority  |   Vruntime   |  State  |\n");
     
     printf("-----------------------------------------------------------------------------\n");
 
     // Iterate all the processes exist in the OS
-    for (int i = 0 ; i < NR_TASKS + NR_NATIVE_PROCS + forked_proc_cnt; ++i )
+    for (int i = 0 ; i < total; ++i )
     {
-    	// Minor display improvement....23333
+    	// Minor display format improvement....23333
     	if (proc_table[i].pid >= 10)
     	{
-    		printf("  %d          %s             %d             ", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
+    		printf("  %d          %s            %d             %d             ", proc_table[i].pid, proc_table[i].name, proc_table[i].priority, proc_table[i].se.vruntime);
     		
     	}
     	else
     	{
-    		printf("  %d           %s               %d              ", proc_table[i].pid, proc_table[i].name, proc_table[i].priority);
+    		printf("  %d           %s              %d              %d             ", proc_table[i].pid, proc_table[i].name, proc_table[i].priority, proc_table[i].se.vruntime);
 
     	}
     	// Show different process state
@@ -431,6 +433,10 @@ void shell_routine(int fd_stdin, int fd_stdout)
 					struct time t = get_time_RTC();
 					printf("%d/%d/%d %d:%d:%d\n", t.year, t.month, t.day, t.hour, t.minute, t.second);
 				}
+				else if (strcmp(rdbuf, "hello") == 0)
+				{
+					print_hello();
+				}
 				else
 				{
 					printf("Unrecognized command ");
@@ -514,7 +520,11 @@ void Init()
  *======================================================================*/
 void TestA()
 {
-	for(;;);
+	for(;;)
+	{
+		//milli_delay(200);
+		//disp_str("A");
+	}
 }
 
 /*======================================================================*
@@ -522,7 +532,11 @@ void TestA()
  *======================================================================*/
 void TestB()
 {
-	for(;;);
+	for(;;)
+	{
+		//milli_delay(200);
+		//disp_str("B");
+	}
 }
 
 /*======================================================================*
@@ -530,7 +544,11 @@ void TestB()
  *======================================================================*/
 void TestC()
 {
-	for(;;);
+	for(;;)
+	{
+		//milli_delay(200);
+		//disp_str("C");
+	}
 }
 
 /*****************************************************************************

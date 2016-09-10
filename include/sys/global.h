@@ -42,6 +42,13 @@ extern	irq_handler	irq_table[];
 extern	TTY		tty_table[];
 extern  CONSOLE		console_table[];
 
+/* Process scheduling */
+extern  int sysctl_sched_min_granularity;
+extern 	int sysctl_sched_latency;
+extern  u32 cfs_total_weight;
+extern  int default_proc_load;
+extern  int default_vruntime;
+
 /* MM */
 EXTERN	MESSAGE			mm_msg;
 extern	u8 *			mmbuf;

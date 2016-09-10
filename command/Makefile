@@ -12,7 +12,7 @@ CFLAGS		= -I ../include/ -I ../include/sys/ -I ../include/asm/ -c -fno-builtin -
 LDFLAGS		= -Ttext 0x1000 -Map ../krnl.map
 DASMFLAGS	= -D
 LIB		= ../lib/orangescrt.a
-BIN		= hello cpuinfo ls guess snake help edit touch cat rm cp
+BIN		= cpuinfo ls guess snake help edit touch cat rm cp
 
 # All Phony Targets
 .PHONY : everything final clean realclean disasm all install
@@ -53,11 +53,11 @@ pwd.o: pwd.c ../include/type.h ../include/stdio.h
 pwd : pwd.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
-hello.o: hello.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -lm -o $@ $<
+# hello.o: hello.c ../include/type.h ../include/stdio.h
+# 	$(CC) $(CFLAGS) -lm -o $@ $<
 
-hello : hello.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
+# hello : hello.o start.o $(LIB)
+# 	$(LD) $(LDFLAGS) -o $@ $?
 
 cpuinfo.o: cpuinfo.c ../include/type.h ../include/stdio.h
 	$(CC) $(CFLAGS) -o $@ $<

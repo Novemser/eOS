@@ -29,55 +29,63 @@ struct stackframe {	/* proc_ptr points here				↑ Low			*/
 	u32	ss;		/*  ┛						┷High			*/
 };
 
+struct sched_entity
+{
+	u32 	vruntime;		// Virtual run time
+	int 	weight;			// Sheduled entity weight	
+	u32		sum_runtime;	// Total runtime
+	u32 	ideal_time; 	// Ideal task run time
+};
+
 
 struct proc {
-	struct stackframe regs;    /* process registers saved in stack frame */
+	struct stackframe 	regs;    		/* process registers saved in stack frame */
 	
 	
-	u16 ldt_sel;               /* gdt selector giving ldt base and limit */
-	struct descriptor ldts[LDT_SIZE]; /* local descs for code and data */
+	u16 				ldt_sel;        /* gdt selector giving ldt base and limit */
+	struct descriptor 	ldts[LDT_SIZE]; /* local descs for code and data */
 
-    int ticks;                 /* remained ticks */
-    int priority;
+    int 				ticks;          /* remained ticks */
+    int 				priority;
 
-	u32 pid;                   /* process id passed in from MM */ 
-	char name[16];		   /* name of the process */
+	u32 				pid;            /* process id passed in from MM */ 
+	char 				name[16];		 /* name of the process */
 
-	int  p_flags;              /**
-				    * process flags.
-				    * A proc is runnable iff p_flags==0
-				    */
+	int  				p_flags;         /**
+										    * process flags.
+										    * A proc is runnable iff p_flags==0
+										    */
 
-	MESSAGE * p_msg;
-	int p_recvfrom;
-	int p_sendto;
+	MESSAGE * 			p_msg;
+	int 				p_recvfrom;
+	int 				p_sendto;
 
-	int has_int_msg;           /**
-				    * nonzero if an INTERRUPT occurred when
-				    * the task is not ready to deal with it.
-				    */
+	int 				has_int_msg; /**
+									    * nonzero if an INTERRUPT occurred when
+									    * the task is not ready to deal with it.
+									    */
 
-	struct proc * q_sending;   /**
-				    * queue of procs sending messages to
-				    * this proc
-				    */
-	struct proc * next_sending;/**
-				    * next proc in the sending
-				    * queue (q_sending)
-				    */
+	struct proc * 		q_sending;   /**
+									    * queue of procs sending messages to
+									    * this proc
+									    */
+	struct proc * 		next_sending;/**
+									    * next proc in the sending
+									    * queue (q_sending)
+									    */
 
-	int p_parent; /**< pid of parent process */
+	int 				p_parent; 		/**< pid of parent process */
 
-	int exit_status; /**< for parent */
+	int 				exit_status; 	/**< for parent */
 
-	struct file_desc * filp[NR_FILES];
-	int state;					/* -1 unrunnable, 0 runnable, >0 stopped */
-
+	struct file_desc * 	filp[NR_FILES];
+	int 				state;			/* -1 unrunnable, 0 runnable, >0 stopped */
+	struct sched_entity se; 			// Scheduling entity
 };
 
 struct task {
 	task_f	initial_eip;
-	int	stacksize;
+	int		stacksize;
 	char	name[32];
 };
 

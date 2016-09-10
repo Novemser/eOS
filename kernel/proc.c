@@ -25,7 +25,7 @@ PRIVATE int  deadlock(int src, int dest);
 
 long startup_time=0;
 struct proc* current;
-
+const int MAX_INT = 0xffffffff;
 /*****************************************************************************
  *                                schedule
  *****************************************************************************/
@@ -38,23 +38,35 @@ PUBLIC void schedule(void)
 	struct proc*	p;
 	int		greatest_ticks = 0;
 
-	while (!greatest_ticks) {
-		for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
-			if (p->p_flags == 0) {
-				if (p->ticks > greatest_ticks && p->state == TASK_RUNNING) {
-					greatest_ticks = p->ticks;
-					p_proc_ready = p;
-					current = p_proc_ready;
+	int lowest_vruntime = MAX_INT;
+	int total = NR_TASKS + NR_NATIVE_PROCS + forked_proc_cnt;
+	while (lowest_vruntime == MAX_INT)
+	{
+		// Pick a process with lowest vruntime
+		for (int i = 0; i < total; ++i)
+		{
+			p = &proc_table[i];
+
+			if (p->p_flags == 0)
+			{
+				if (p->state == TASK_RUNNING && p->se.vruntime < lowest_vruntime)
+				{
+					lowest_vruntime = p->se.vruntime;
+					current = p_proc_ready = p;
 				}
 			}
 		}
 
-		if (!greatest_ticks)
-			for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
+		if (lowest_vruntime == MAX_INT)
+		{
+			for (int i = 0; i < total; ++i)
 			{
+				p = &proc_table[i];
 				p->state = TASK_RUNNING;
-				p->ticks = p->priority;	
+				p->se.vruntime = default_vruntime;
 			}
+		}
+
 	}
 }
 
@@ -151,6 +163,21 @@ PUBLIC void* va2la(int pid, void* va)
 	}
 
 	return (void*)la;
+}
+
+/*****************************************************************************
+ *				  set_statue
+ *****************************************************************************/
+/**
+ * <Ring 0> Set a process' state.
+ * 
+ * @param p  		The process to be set.
+ * @param state   	Which state will p become.
+ * 
+ *****************************************************************************/
+PUBLIC void set_statue(struct proc* p, int state)
+{
+	p->state = state;
 }
 
 /*****************************************************************************

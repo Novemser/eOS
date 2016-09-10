@@ -1,7 +1,7 @@
+// Do not delete!
 #include "stdio.h"
-#include "math.h"
 
-int main()
+int print_hello()
 {
     int i, j, n;
 	n=10;

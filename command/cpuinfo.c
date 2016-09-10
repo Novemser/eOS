@@ -16,7 +16,7 @@
 #include "io.h"
 #include "system.h"
 #include "time.h"
-#include "stdarg.h"
+
 
 typedef long long int64_t;
 #define MISSING_USLEEP

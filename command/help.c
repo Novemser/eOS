@@ -16,6 +16,9 @@ int main(int argc, char const *argv[])
 	printf("  9.edit      [fileName]           Edit a file.\n");
 	printf(" 10.cat       [fileName]           Show the content of a file.\n");
 	printf(" 11.cp        [Dest] [Source]      Copy a source into destination file.\n");
+	printf(" 12.rm        [fileName]           Remove a file.\n");
+	printf(" 13.guess                          Play guess number game.\n");
+	printf(" 14.snake                          Play snake game.\n");
 
 
 	printf("======================================================================\n");
